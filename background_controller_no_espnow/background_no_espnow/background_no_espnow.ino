@@ -25,28 +25,23 @@ long targetPosition = 0; // Initial motor position
 void setup() {
   Serial.begin(115200);
 
-  // Set max speed and acceleration
   stepper.setMaxSpeed(maxSpeed);
   stepper.setAcceleration(maxAccel);
 
-  // Configure button pins as inputs with pullup resistors
   pinMode(buttonPin1, INPUT_PULLUP);
   pinMode(buttonPin2, INPUT_PULLUP);
   pinMode(buttonPin3, INPUT_PULLUP);
   pinMode(buttonPin4, INPUT_PULLUP);
 
-  // Set initial motor position
   stepper.setCurrentPosition(0);
 }
 
 void loop() {
-  // Read the current state of the buttons
   int buttonState1 = digitalRead(buttonPin1);
   int buttonState2 = digitalRead(buttonPin2);
   int buttonState3 = digitalRead(buttonPin3);
   int buttonState4 = digitalRead(buttonPin4);
 
-  // Check for button press events (button state changes from HIGH to LOW)
   if (buttonState1 == LOW && lastButtonState1 == HIGH) {
     targetPosition = 0;
     stepper.moveTo(targetPosition);
@@ -68,12 +63,10 @@ void loop() {
     Serial.println("Scene 4");
   }
 
-  // Save the current button states for comparison in the next loop iteration
   lastButtonState1 = buttonState1;
   lastButtonState2 = buttonState2;
   lastButtonState3 = buttonState3;
   lastButtonState4 = buttonState4;
 
-  // Run the motor to the target position
   stepper.run();
 }
