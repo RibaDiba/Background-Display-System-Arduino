@@ -6,23 +6,18 @@
 #define buttonPin3 27
 #define buttonPin4 19
 
-#define slave_mac_addr
+uint8_t broadcastAddress[] = {0xcc, 0xdb, 0xa7, 0x3e, 0xe7, 0xec}; 
 
-volatile int buttonState1 = HIGH;
-volatile int buttonState2 = HIGH;
-volatile int buttonState3 = HIGH;
-volatile int buttonState4 = HIGH;
+// CHANGE THIS (PLACEHOLDER)
+const int button1Pos = 1; 
+const int button2Pos = 2;
+const int button3Pos = 3;
+const int button4Pos = 4;
 
-int lastButtonState1 = HIGH;
-int lastButtonState2 = HIGH;
-int lastButtonState3 = HIGH;
-int lastButtonState4 = HIGH;
+portMUX_TYPE synch = portMUX_INITIALIZER_UNLOCKED;
 
 typedef struct struct_message {
-  int buttonState1;
-  int buttonState2;
-  int buttonState3;
-  int buttonState4;
+  volatile int posToSend; 
 } struct_message;
 
 struct_message buttonMessage;
@@ -32,21 +27,10 @@ void onDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
 }
 
-// not sure if this logic is correct 
-void IRAM_ATTR handleButton1() {
-  buttonState1 = digitalRead(buttonPin1);
-}
-
-void IRAM_ATTR handleButton2() {
-  buttonState2 = digitalRead(buttonPin2);
-}
-
-void IRAM_ATTR handleButton3() {
-  buttonState3 = digitalRead(buttonPin3);
-}
-
-void IRAM_ATTR handleButton4() {
-  buttonState4 = digitalRead(buttonPin4);
+void IRAM_ATTR handleButton(int buttonPos) {
+  portENTER_CRITICAL(&synch);
+  buttonMessage.posToSend = buttonPos;
+  portEXIT_CRITICAL(&synch);
 }
 
 void setup() {
@@ -61,8 +45,8 @@ void setup() {
 
   esp_now_register_send_cb(onDataSent);
 
-  esp_now_peer_info_t peerInfo;
-  memcpy(peerInfo.peer_addr, slave_mac_addr, 6);
+  esp_now_peer_info_t peerInfo = {};
+  memcpy(peerInfo.peer_addr, broadcastAddress, 6); //Changed to broadcast address, (second argument)
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
 
@@ -77,22 +61,15 @@ void setup() {
   pinMode(buttonPin4, INPUT_PULLUP);
 
   // atached interrupts here 
-  attachInterrupt(buttonPin1, handleButton1, CHANGE);
-  attachInterrupt(buttonPin2, handleButton2, CHANGE);
-  attachInterrupt(buttonPin3, handleButton3, CHANGE);
-  attachInterrupt(buttonPin4, handleButton4, CHANGE);
+  attachInterrupt(buttonPin1, [] { handleButton(button1Pos); }, FALLING);
+  attachInterrupt(buttonPin2, [] { handleButton(button2Pos); }, FALLING);
+  attachInterrupt(buttonPin3, [] { handleButton(button3Pos); }, FALLING);
+  attachInterrupt(buttonPin4, [] { handleButton(button4Pos); }, FALLING);
 }
 
 void loop() {
-  if (buttonState1 != lastButtonState1 || buttonState2 != lastButtonState2 || 
-      buttonState3 != lastButtonState3 || buttonState4 != lastButtonState4) {
 
-    buttonMessage.buttonState1 = buttonState1;
-    buttonMessage.buttonState2 = buttonState2;
-    buttonMessage.buttonState3 = buttonState3;
-    buttonMessage.buttonState4 = buttonState4;
-
-    esp_err_t result = esp_now_send(peerInfo.peer_addr, (uint8_t *)&buttonMessage, sizeof(buttonMessage));
+    esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&buttonMessage, sizeof(buttonMessage)); //Changed to broadcast Address (first argument)
 
     if (result == ESP_OK) {
       Serial.println("Sent with success");
@@ -100,11 +77,7 @@ void loop() {
       Serial.println("Error sending the data");
     }
 
-    lastButtonState1 = buttonState1;
-    lastButtonState2 = buttonState2;
-    lastButtonState3 = buttonState3;
-    lastButtonState4 = buttonState4;
-  }
-  
-  delay(100); // Small delay to prevent spamming
+    Serial.println(buttonMessage.posToSend);
+
+  vTaskDelay(100); // Small delay to prevent spamming
 }
