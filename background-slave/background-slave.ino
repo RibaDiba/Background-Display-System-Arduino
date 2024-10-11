@@ -6,8 +6,8 @@
 #define stepPin 22
 #define dirPin 23
 
-#define maxSpeed 50
-#define maxAccel 25
+#define maxSpeed 400
+#define maxAccel 100
 #define totalSteps 1600
 
 AccelStepper stepper(1, stepPin, dirPin);
