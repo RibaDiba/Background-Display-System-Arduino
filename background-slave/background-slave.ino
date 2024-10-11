@@ -6,8 +6,8 @@
 #define stepPin 22
 #define dirPin 23
 
-#define maxSpeed 4000
-#define maxAccel 1000
+#define maxSpeed 50
+#define maxAccel 25
 #define totalSteps 1600
 
 AccelStepper stepper(1, stepPin, dirPin);
@@ -22,8 +22,13 @@ struct_message data;
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&data, incomingData, sizeof(data));
 
+  Serial.println(data.posToSend);
   stepper.moveTo(data.posToSend);
 
+  stepper.setMaxSpeed(maxSpeed);
+  stepper.setAcceleration(maxAccel);
+
+  stepper.run();
 }
 
 void setup() {
@@ -53,5 +58,4 @@ void setup() {
 
 void loop() {
   stepper.run();
-  vTaskDelay(100);
 }

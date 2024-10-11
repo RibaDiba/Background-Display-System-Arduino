@@ -9,10 +9,10 @@
 uint8_t broadcastAddress[] = {0xcc, 0xdb, 0xa7, 0x3e, 0xe7, 0xec}; 
 
 // CHANGE THIS (PLACEHOLDER)
-const int button1Pos = 1; 
-const int button2Pos = 2;
-const int button3Pos = 3;
-const int button4Pos = 4;
+const int button1Pos = 0; 
+const int button2Pos = 400;
+const int button3Pos = 800;
+const int button4Pos = 1200;
 
 portMUX_TYPE synch = portMUX_INITIALIZER_UNLOCKED;
 
