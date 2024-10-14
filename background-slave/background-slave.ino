@@ -20,7 +20,7 @@ typedef struct struct_message {
 
 struct_message data;
 
-void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+void OnDataRecv(const esp_now_recv_info_t *info, const uint8_t *incomingData, int len) {
   memcpy(&data, incomingData, sizeof(data));
 
   stepper.setMaxSpeed(data.maxSpeed);
@@ -37,9 +37,6 @@ void setup() {
   Serial.begin(115200);
 
   data.posToSend = 0;
-
-  stepper.setMaxSpeed(data.);
-  stepper.setAcceleration(maxAccel);
 
   stepper.setCurrentPosition(data.posToSend);
 

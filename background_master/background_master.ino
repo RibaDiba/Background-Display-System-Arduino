@@ -6,8 +6,8 @@
 #define buttonPin3 27
 #define buttonPin4 19
 
-#define accel 100 
-#define speed 400
+#define accel 400 
+#define speed 800
 
 uint8_t broadcastAddress[] = {0xcc, 0xdb, 0xa7, 0x3e, 0xe7, 0xec}; 
 
@@ -34,7 +34,7 @@ void onDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 
 void IRAM_ATTR handleButton(int buttonPos) {
   portENTER_CRITICAL(&synch);
-  buttonMessage.posToSend = buttonPos;
+  buttonMessage.posToSend = buttonPos * 4;
   buttonMessage.maxAccel = accel;
   buttonMessage.maxSpeed = speed;
   portEXIT_CRITICAL(&synch);
