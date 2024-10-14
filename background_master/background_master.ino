@@ -6,6 +6,9 @@
 #define buttonPin3 27
 #define buttonPin4 19
 
+#define accel 100 
+#define speed 400
+
 uint8_t broadcastAddress[] = {0xcc, 0xdb, 0xa7, 0x3e, 0xe7, 0xec}; 
 
 // CHANGE THIS (PLACEHOLDER)
@@ -18,6 +21,8 @@ portMUX_TYPE synch = portMUX_INITIALIZER_UNLOCKED;
 
 typedef struct struct_message {
   volatile int posToSend; 
+  int maxAccel;
+  int maxSpeed;
 } struct_message;
 
 struct_message buttonMessage;
@@ -30,6 +35,8 @@ void onDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 void IRAM_ATTR handleButton(int buttonPos) {
   portENTER_CRITICAL(&synch);
   buttonMessage.posToSend = buttonPos;
+  buttonMessage.maxAccel = accel;
+  buttonMessage.maxSpeed = speed;
   portEXIT_CRITICAL(&synch);
 }
 

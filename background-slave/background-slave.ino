@@ -6,8 +6,7 @@
 #define stepPin 22
 #define dirPin 23
 
-#define maxSpeed 400
-#define maxAccel 100
+// this is just for reference
 #define totalSteps 1600
 
 AccelStepper stepper(1, stepPin, dirPin);
@@ -15,6 +14,8 @@ AccelStepper stepper(1, stepPin, dirPin);
 // struct 
 typedef struct struct_message {
     volatile int posToSend;
+    int maxAccel;
+    int maxSpeed;
 } struct_message;
 
 struct_message data;
@@ -22,11 +23,11 @@ struct_message data;
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&data, incomingData, sizeof(data));
 
+  stepper.setMaxSpeed(data.maxSpeed);
+  stepper.setAcceleration(data.maxAccel);
+
   Serial.println(data.posToSend);
   stepper.moveTo(data.posToSend);
-
-  stepper.setMaxSpeed(maxSpeed);
-  stepper.setAcceleration(maxAccel);
 
   stepper.run();
 }
@@ -37,7 +38,7 @@ void setup() {
 
   data.posToSend = 0;
 
-  stepper.setMaxSpeed(maxSpeed);
+  stepper.setMaxSpeed(data.);
   stepper.setAcceleration(maxAccel);
 
   stepper.setCurrentPosition(data.posToSend);
