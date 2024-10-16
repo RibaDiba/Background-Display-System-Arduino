@@ -6,8 +6,8 @@
 #define buttonPin3 27
 #define buttonPin4 19
 
-#define accel 400 
-#define speed 800
+#define accel 100
+#define speed 200
 
 uint8_t broadcastAddress[] = {0xcc, 0xdb, 0xa7, 0x3e, 0xe7, 0xec}; 
 
