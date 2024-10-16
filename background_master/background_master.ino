@@ -34,7 +34,7 @@ void onDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 
 void IRAM_ATTR handleButton(int buttonPos) {
   portENTER_CRITICAL(&synch);
-  buttonMessage.posToSend = buttonPos * 4;
+  buttonMessage.posToSend = buttonPos * 16;
   buttonMessage.maxAccel = accel;
   buttonMessage.maxSpeed = speed;
   portEXIT_CRITICAL(&synch);
