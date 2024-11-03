@@ -4,7 +4,6 @@
 #define buttonPin1 18
 #define buttonPin2 26
 #define buttonPin3 27
-#define buttonPin4 19
 
 #define accel 100
 #define speed 200
@@ -13,9 +12,8 @@ uint8_t broadcastAddress[] = {0xcc, 0xdb, 0xa7, 0x3e, 0xe7, 0xec};
 
 // CHANGE THIS (PLACEHOLDER)
 const int button1Pos = 0; 
-const int button2Pos = 400;
-const int button3Pos = 800;
-const int button4Pos = 1200;
+const int button2Pos = 533;
+const int button3Pos = 1066;
 
 portMUX_TYPE synch = portMUX_INITIALIZER_UNLOCKED;
 
@@ -65,13 +63,11 @@ void setup() {
   pinMode(buttonPin1, INPUT_PULLUP);
   pinMode(buttonPin2, INPUT_PULLUP);
   pinMode(buttonPin3, INPUT_PULLUP);
-  pinMode(buttonPin4, INPUT_PULLUP);
 
   // atached interrupts here 
   attachInterrupt(buttonPin1, [] { handleButton(button1Pos); }, FALLING);
   attachInterrupt(buttonPin2, [] { handleButton(button2Pos); }, FALLING);
   attachInterrupt(buttonPin3, [] { handleButton(button3Pos); }, FALLING);
-  attachInterrupt(buttonPin4, [] { handleButton(button4Pos); }, FALLING);
 }
 
 void loop() {
