@@ -5,22 +5,25 @@
 #define buttonPin2 26
 #define buttonPin3 27
 
-#define switchPin 1
+#define switchPin 23
 
-#define accel 100
-#define speed 200
+#define accel 1200
+#define speed 2000
 
-uint8_t broadcastAddress1[] = {0xcc, 0xdb, 0xa7, 0x3e, 0xe7, 0xec}; 
-uint8_t broadcastAddress2[] = {0x08, 0xa6, 0xf7, 0xbc, 0x7f, 0x64};  
+uint8_t broadcastAddress1[] = { 0xcc, 0xdb, 0xa7, 0x3e, 0xe7, 0xec };
+uint8_t broadcastAddress2[] = { 0x08, 0xa6, 0xf7, 0xbc, 0x7f, 0x64 };
 
-const int button1Pos = 0; 
-const int button2Pos = 533;
-const int button3Pos = 1066;
+const int button1Pos = 0;
+const int button2Pos = 540 * 16;
+const int button3Pos = (1080) * 16;
+
+int switchState = 0;
+int positions[2] = { 0, 0 };
 
 portMUX_TYPE synch = portMUX_INITIALIZER_UNLOCKED;
 
 typedef struct struct_message {
-  volatile int posToSend; 
+  volatile int posToSend;
   int maxAccel;
   int maxSpeed;
 } struct_message;
@@ -34,10 +37,25 @@ void onDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 
 void IRAM_ATTR handleButton(int buttonPos) {
   portENTER_CRITICAL(&synch);
-  buttonMessage.posToSend = buttonPos * 16;
+  buttonMessage.posToSend = buttonPos;
   buttonMessage.maxAccel = accel;
   buttonMessage.maxSpeed = speed;
+
+  if (switchState == HIGH) {
+    positions[0] = buttonPos;
+  } else {
+    positions[1] = buttonPos;
+  }
+
   portEXIT_CRITICAL(&synch);
+}
+
+void IRAM_ATTR handleSwitch() {
+  switchState = digitalRead(switchPin);
+  int buttonPos = (switchState == HIGH) ? positions[0] : positions[1];
+
+  Serial.println(buttonPos);
+  buttonMessage.posToSend = buttonPos;
 }
 
 void setup() {
@@ -75,14 +93,26 @@ void setup() {
   pinMode(buttonPin3, INPUT_PULLUP);
   pinMode(switchPin, INPUT_PULLUP);
 
-  attachInterrupt(buttonPin1, [] { handleButton(button1Pos); }, FALLING);
-  attachInterrupt(buttonPin2, [] { handleButton(button2Pos); }, FALLING);
-  attachInterrupt(buttonPin3, [] { handleButton(button3Pos); }, FALLING);
+  attachInterrupt(
+    digitalPinToInterrupt(buttonPin1), [] {
+      handleButton(button1Pos);
+    },
+    FALLING);
+  attachInterrupt(
+    digitalPinToInterrupt(buttonPin2), [] {
+      handleButton(button2Pos);
+    },
+    FALLING);
+  attachInterrupt(
+    digitalPinToInterrupt(buttonPin3), [] {
+      handleButton(button3Pos);
+    },
+    FALLING);
+  attachInterrupt(digitalPinToInterrupt(switchPin), handleSwitch, CHANGE);
 }
 
 void loop() {
-  int switchState = digitalRead(switchPin);
-  uint8_t* broadcastAddress = (switchState == HIGH) ? broadcastAddress1 : broadcastAddress2;
+  uint8_t *broadcastAddress = (switchState == HIGH) ? broadcastAddress1 : broadcastAddress2;
 
   esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&buttonMessage, sizeof(buttonMessage));
 
@@ -93,6 +123,13 @@ void loop() {
   }
 
   Serial.println(buttonMessage.posToSend);
+  Serial.println(switchState);
 
-  vTaskDelay(100);
+  if (broadcastAddress == broadcastAddress1) {
+    Serial.println("Broadcasting to system 1");
+  } else {
+    Serial.println("Broadcasting to system 2");
+  }
+
+  delay(100);
 }

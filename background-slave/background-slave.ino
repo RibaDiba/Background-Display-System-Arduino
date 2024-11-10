@@ -1,7 +1,7 @@
 // lib 
 #include <esp_now.h>
 #include <WiFi.h> 
-#include <AccelStepper1.h>
+#include <AccelStepper.h>
 
 #define stepPin1 22
 #define dirPin1 23
