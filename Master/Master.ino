@@ -44,7 +44,6 @@ void IRAM_ATTR handleButton(int Pos) {
 
 void IRAM_ATTR handleSwitch() {
     int switchState = digitalRead(switchPins[0]);
-    int buttonPos = (switchState == HIGH) ? positions[0] : positions[1];
 
     if (switchState == HIGH) {
         system1.setActive(true);
@@ -72,8 +71,8 @@ void setup() {
     peerInfo1.channel = 0;
     peerInfo1.encrypt = false;
     if (esp_now_add_peer(&peerInfo1) != ESP_OK) {
-    Serial.println("Failed to add peer 1");
-    return;
+        Serial.println("Failed to add peer 1");
+        return;
     }
 
     esp_now_peer_info_t peerInfo2 = {};
@@ -81,9 +80,21 @@ void setup() {
     peerInfo2.channel = 0;
     peerInfo2.encrypt = false;
     if (esp_now_add_peer(&peerInfo2) != ESP_OK) {
-    Serial.println("Failed to add peer 2");
-    return;
+        Serial.println("Failed to add peer 2");
+        return;
     }
+
+    // interrupts for buttons
+    attatchInterrupt(digitalPinToInterrupt(switchPins[1]), [] {handleButton(positions[0]);}, FALLING)
+    attatchInterrupt(digitalPinToInterrupt(switchPins[2]), [] {handleButton(positions[1]);}, FALLING)
+    attatchInterrupt(digitalPinToInterrupt(switchPins[3]), [] {handleButton(positions[2]);}, FALLING)
+
+    // interrupt for bds switch 
+    attachInterrupt(digitalPinToInterrupt(switchPins[0]), handleSwitch, CHANGE);
+}
+
+void loop() {
+// TODO: finish loop here
 
 }
 
