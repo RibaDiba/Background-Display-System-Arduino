@@ -12,7 +12,7 @@ int switchPins[4] = {13, 35, 32, 26};
 int positions[3] = {0, 540 * 16, 1080 * 16};
 
 // first 3 are for scenes and 14 and 23 are for switching bds indicator 
-int ledPins[5] = {34, 33, 27, 14, 23};
+int ledPins[5] = {22, 33, 27, 14, 23};
 
 // this line is to make sure interrupts are handled correctly 
 portMUX_TYPE synch = portMUX_INITIALIZER_UNLOCKED;
@@ -22,6 +22,7 @@ typedef struct message {
     volatile int position;
     int maxAccel;
     int maxSpeed;
+    uint8_t* address;
 } message;
 
 volatile message broadcastMessage = {0, maxAccel, maxSpeed};
@@ -48,9 +49,11 @@ BDS system2 = BDS(0, (uint8_t[]){0x08, 0xa6, 0xf7, 0xbc, 0x7f, 0x64}, false);
 // interrupt functions here
 void IRAM_ATTR handleButton(int Pos) {
     portENTER_CRITICAL(&synch);
-    broadcastMessage.position = Pos;
-    Serial.print("Button Pressed: ");
-    Serial.println(Pos);
+    if (system1.getActive() == true) {
+        system1.setPosition(Pos);
+    } else {
+        system2.setPosition(Pos);
+    }
     portEXIT_CRITICAL(&synch);
 }
 
@@ -127,15 +130,34 @@ void writePosLed(int pos) {
 
 
 void loop() {
-    uint8_t *broadcastAddress = system1.getActive() ? system1.getBroadcastAddr() : system2.getBroadcastAddr();
     // Serial.println(system1.getActive() ? "Sending to System 1" : "Sending to System 2");
-    system1.getActive() ? (digitalWrite(ledPins[3], HIGH), digitalWrite(ledPins[4], LOW), writePosLed(system1.getPosition())) 
-        : (digitalWrite(ledPins[3], LOW), digitalWrite(ledPins[4], HIGH), writePosLed(system2.getPosition()));
+    // system1.getActive() ? (digitalWrite(ledPins[3], HIGH), digitalWrite(ledPins[4], LOW), writePosLed(system1.getPosition())) 
+    //     : (digitalWrite(ledPins[3], LOW), digitalWrite(ledPins[4], HIGH), writePosLed(system2.getPosition()));
 
-    Serial.println(system1.getPosition());
+    // bool isMatching = system1.getActive() 
+    // ? (broadcastMessage.position == system1.getPosition()) 
+    // : (broadcastMessage.position == system2.getPosition());
 
-    esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&broadcastMessage, sizeof(broadcastMessage));
+    // Serial.println(broadcastMessage.position);
+
+    if (system1.getActive()) {
+        digitalWrite(ledPins[3], HIGH);
+        digitalWrite(ledPins[4], LOW);
+        broadcastMessage.address = system1.getBroadcastAddr();
+        broadcastMessage.position = system1.getPosition();
+        writePosLed(system1.getPosition());
+        printf("Sending to System 1 with: %d\n", broadcastMessage.position);
+    } else {
+        digitalWrite(ledPins[3], LOW);
+        digitalWrite(ledPins[4], HIGH);
+        writePosLed(system2.getPosition());
+        broadcastMessage.address = system2.getBroadcastAddr();
+        broadcastMessage.position = system2.getPosition();
+        printf("Sending to System 2 with: %d\n", broadcastMessage.position);
+    }    
+
+    esp_err_t result = esp_now_send(broadcastMessage.address, (uint8_t *)&broadcastMessage, sizeof(broadcastMessage));
     if (result == ESP_OK) {
-        // Serial.println("Sent with Success");
+        Serial.print("Sent with Success");
     }
 }
