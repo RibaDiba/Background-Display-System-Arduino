@@ -3,8 +3,13 @@
 #include <AccelStepper.h>
 
 // motor pins {stepPin, dirPin}
-int motor1[2] = {22, 23};
-int motor2[2] = {18, 19};
+// this is for system 2
+int motor1[2] = {18, 21};
+int motor2[2] = {25, 27};
+
+// this is for system 1
+// int motor1[2] = {19, 3};
+// int motor2[2] = {27, 25};
 
 AccelStepper stepper1(1, motor1[0], motor1[1]);
 AccelStepper stepper2(2, motor2[0], motor2[1]);

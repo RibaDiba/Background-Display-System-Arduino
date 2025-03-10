@@ -2,16 +2,16 @@
 #include <WiFi.h>
 #include "BDS.h"
 
-int maxSpeed = 100;
-int maxAccel = 200;
+int maxSpeed = 400;
+int maxAccel = 50;
 
-// bds, switch 1, switch 2, switch 3
+// bds, switch 1, switch 2, switch 3  
 int switchPins[4] = {13, 35, 32, 26};
 
 // scene 1, scene 2, scene 3
-int positions[3] = {0, 540 * 16, 1080 * 16};
+int positions[3] = {0, 66.67 * 16 * 4, 133.33 * 16 * 4};
 
-// first 3 are for scenes and 14 and 23 are for switching bds indicator 
+// first 3 are for scenes and 14 and 23` are for switching bds indicator 
 int ledPins[5] = {22, 33, 27, 14, 23};
 
 // this line is to make sure interrupts are handled correctly 
@@ -28,8 +28,9 @@ typedef struct message {
 volatile message broadcastMessage = {0, maxAccel, maxSpeed};
 
 void onDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-    // Serial.print("Last Packet Send Status: ");
-    // Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+    Serial.print("Last Packet Send Status: ");
+    Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+    Serial.println(broadcastMessage.position);
 }
 
 void initPins() {
@@ -40,9 +41,9 @@ void initPins() {
         pinMode(ledPins[i], OUTPUT);
     }
 }
-
+// sys1 = 08:a6:f7:b1:10:90
 // declare BDS objects
-BDS system1 = BDS(0, (uint8_t[]){0xcc, 0xdb, 0xa7, 0x3e, 0xe7, 0xec}, false);
+BDS system1 = BDS(0, (uint8_t[]){0x08, 0xa6, 0xf7, 0xb1, 0x10, 0x90}, false);
 BDS system2 = BDS(0, (uint8_t[]){0x08, 0xa6, 0xf7, 0xbc, 0x7f, 0x64}, false);
 
 
@@ -146,14 +147,14 @@ void loop() {
         broadcastMessage.address = system1.getBroadcastAddr();
         broadcastMessage.position = system1.getPosition();
         writePosLed(system1.getPosition());
-        printf("Sending to System 1 with: %d\n", broadcastMessage.position);
+        // printf("Sending to System 1 with: %d\n", broadcastMessage.position);
     } else {
         digitalWrite(ledPins[3], LOW);
         digitalWrite(ledPins[4], HIGH);
         writePosLed(system2.getPosition());
         broadcastMessage.address = system2.getBroadcastAddr();
         broadcastMessage.position = system2.getPosition();
-        printf("Sending to System 2 with: %d\n", broadcastMessage.position);
+        // printf("Sending to System 2 with: %d\n", broadcastMessage.position);
     }    
 
     esp_err_t result = esp_now_send(broadcastMessage.address, (uint8_t *)&broadcastMessage, sizeof(broadcastMessage));
