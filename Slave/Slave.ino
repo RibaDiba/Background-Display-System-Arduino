@@ -15,14 +15,19 @@ AccelStepper stepper1(1, motor1[0], motor1[1]);
 AccelStepper stepper2(2, motor2[0], motor2[1]);
 
 // this is copied from Master.ino
-typedef struct message {
-    volatile int position;
-    int maxAccel;
-    int maxSpeed;
-    uint8_t* address;
-} message;
+typedef struct broadData {
+  int s1Position;
+  int s2Position;
+  
+  int s1MaxSpeed;
+  int s2MaxSpeed;
 
-message data;
+  int s1MaxAccel;
+  int s2MaxAccel;
+} broadData;
+
+
+broadData data;
 
 void OnDataRecv(const esp_now_recv_info_t *info, const uint8_t *incomingData, int len) {
   memcpy(&data, incomingData, sizeof(data));
