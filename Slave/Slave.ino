@@ -32,15 +32,20 @@ broadData data;
 void OnDataRecv(const esp_now_recv_info_t *info, const uint8_t *incomingData, int len) {
   memcpy(&data, incomingData, sizeof(data));
 
-  stepper1.setMaxSpeed(data.maxSpeed);
-  stepper1.setAcceleration(data.maxAccel);
+  stepper1.setMaxSpeed(data.s1MaxSpeed);
+  stepper1.setAcceleration(data.s2MaxAccel);
 
-  stepper2.setMaxSpeed(data.maxSpeed);
-  stepper2.setAcceleration(data.maxAccel);
+  stepper2.setMaxSpeed(data.s1maxSpeed);
+  stepper2.setAcceleration(data.s2MaxAccel);
 
-  Serial.println(data.position);
-  stepper1.moveTo(data.position);
-  stepper2.moveTo(data.position);
+  // print statements 
+  Serial.print("Stepper1 Pos: ");
+  Serial.println(data.s1Position);
+  Serial.print("Stepper2 Pos: ");
+  Serial.println(data.s2Position);
+
+  stepper1.moveTo(data.s1Position);
+  stepper2.moveTo(data.s2Position);
 
   stepper1.run();
   stepper2.run();
