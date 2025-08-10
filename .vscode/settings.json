@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "cstdint": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "cstdlib": "cpp",
+        "type_traits": "cpp",
+        "cmath": "cpp",
+        "limits": "cpp",
+        "new": "cpp"
+    }
+}
